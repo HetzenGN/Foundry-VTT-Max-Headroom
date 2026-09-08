@@ -68,30 +68,40 @@
 
     {{#each users}}
 
-      <fieldset
+      <details
         class="max-headroom-user-config__user"
         data-role="user-config-row"
         data-user-id="{{userId}}"
       >
 
-        <legend>
-          {{name}}
-        </legend>
+        <summary class="max-headroom-user-config__user-summary">
+
+          <span class="max-headroom-user-config__user-summary-line">
+
+            <strong class="max-headroom-user-config__user-name">
+              {{name}}
+            </strong>
+
+            <label class="max-headroom-user-config__enabled">
+              <input
+                type="checkbox"
+                data-field="enabled"
+                {{#if config.enabled}}checked{{/if}}
+              >
+
+              <span>Enabled</span>
+            </label>
+
+          </span>
+
+        </summary>
 
 
-        {{!-- #region User Mapping --}}
+        <div class="max-headroom-user-config__user-body">
 
-        <div class="max-headroom-user-config__mapping">
+          {{!-- #region User Mapping --}}
 
-          <label class="max-headroom-user-config__enabled">
-            <input
-              type="checkbox"
-              data-field="enabled"
-              {{#if config.enabled}}checked{{/if}}
-            >
-
-            <span>Enabled</span>
-          </label>
+          <div class="max-headroom-user-config__mapping">
 
 
         <div class="max-headroom-user-config__discord-mapping">
@@ -453,9 +463,11 @@
 
         </div>
 
-        {{!-- #endregion --}}
+    {{!-- #endregion --}}
 
-      </fieldset>
+      </div>
+
+    </details>
 
     {{/each}}
 
