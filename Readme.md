@@ -12,8 +12,6 @@ Max Headroom requires:
 
 Only the GM acting as the **Relay Host** needs the companion extension and StreamKit. Other Foundry users receive portrait state through Foundry and do not need to install the extension.
 
-> Normal setup does not require Chrome Developer Mode, Load Unpacked, DevTools, Tampermonkey, or a Discord bot.
-
 ---
 
 # 1. Authorize Discord StreamKit First
@@ -33,9 +31,7 @@ Verify the authorization in:
 
 **Discord → User Settings → Connected Apps → Authorized Apps**
 
-You should see **Streamkit Overlay**. Older Discord interfaces or documentation may call this area **Connections → Authorized Apps**.
-
-This step matters. Without full StreamKit authorization, Max Headroom may still receive speaking events for manually mapped Discord IDs while friendly Discord usernames and nicknames fail to populate automatically.
+You should see **Streamkit Overlay**.
 
 Once authorization is complete, Max Headroom normally uses the configured **Voice Widget** overlay during play.
 
