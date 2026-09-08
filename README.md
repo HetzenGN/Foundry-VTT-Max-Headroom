@@ -9,6 +9,8 @@ including multiple simultaneous speakers.
 
 Foundry VTT Max Headroom displays reactive Discord voice portraits directly inside Foundry VTT. Portraits can change when a Discord user speaks or mutes, giving the table a visual indication of voice activity without requiring OBS inside Foundry.
 
+Foundry VTT Max Headroom is an independent community project and is not affiliated with or endorsed by Foundry Gaming LLC, Discord Inc., or Google.
+
 ## Requirements
 
 Max Headroom requires:
