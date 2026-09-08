@@ -3,11 +3,11 @@
 Max Headroom displays Discord voice activity directly inside Foundry VTT,
 including multiple simultaneous speakers.
 
-![FoundryVTT Max Headroom reactive Discord portrait demonstration](docs/media/max_headroom_demo.gif)
+![Foundry VTT Max Headroom reactive Discord portrait demonstration](docs/media/max_headroom_demo.gif)
 
-# FoundryVTT Max Headroom
+# Foundry VTT Max Headroom
 
-FoundryVTT Max Headroom displays reactive Discord voice portraits directly inside Foundry VTT. Portraits can change when a Discord user speaks or mutes, giving the table a visual indication of voice activity without requiring OBS inside Foundry.
+Foundry VTT Max Headroom displays reactive Discord voice portraits directly inside Foundry VTT. Portraits can change when a Discord user speaks or mutes, giving the table a visual indication of voice activity without requiring OBS inside Foundry.
 
 ## Requirements
 
@@ -48,11 +48,11 @@ Once authorization is complete, Max Headroom normally uses the configured **Voic
 
 Repository:
 
-**https://github.com/HetzenGN/FoundryVTT_Max_Headroom**
+**https://github.com/HetzenGN/Foundry-VTT-Max-Headroom**
 
 Manifest URL:
 
-**https://github.com/HetzenGN/FoundryVTT_Max_Headroom/releases/latest/download/module.json**
+**https://github.com/HetzenGN/Foundry-VTT-Max-Headroom/releases/latest/download/module.json**
 
 In Foundry:
 
@@ -60,7 +60,7 @@ In Foundry:
 2. Paste the manifest URL above.
 3. Install the module.
 4. Launch your world.
-5. Enable **FoundryVTT Max Headroom** for that world.
+5. Enable **Max Headroom** for that world.
 
 Max Headroom targets **Foundry VTT v14 only**.
 
@@ -241,7 +241,7 @@ Persistent portrait mappings remain in the Foundry world.
 - [ ] StreamKit Overlay authorized through **Install for OBS**
 - [ ] **Streamkit Overlay** appears under Discord Authorized Apps
 - [ ] Voice Widget configured for the correct server/channel
-- [ ] FoundryVTT Max Headroom installed and enabled
+- [ ] Foundry VTT Max Headroom installed and enabled
 - [ ] Max Headroom Companion installed from the Chrome Web Store
 - [ ] Current Foundry tab paired
 - [ ] StreamKit Relay URL set to the Voice Widget URL
