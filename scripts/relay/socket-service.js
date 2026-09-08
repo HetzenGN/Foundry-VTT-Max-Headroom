@@ -57,10 +57,6 @@ function debugLog(...args) {
   );
 }
 
-
-/**
- * Return whether a Foundry User ID belongs to a GM.
- */
 function isGMUserId(userId) {
   if (!userId) {
     return false;
@@ -71,10 +67,6 @@ function isGMUserId(userId) {
   );
 }
 
-
-/**
- * Validate the common socket envelope.
- */
 function isSocketEnvelope(payload) {
   if (
     !payload
@@ -114,10 +106,6 @@ function isSocketEnvelope(payload) {
   return true;
 }
 
-
-/**
- * Normalize client portrait state received through a full sync.
- */
 function normalizeClientPortraitState(
   state = {}
 ) {
@@ -151,41 +139,14 @@ function normalizeClientPortraitState(
 
 // #region Socket Service
 
-/**
- * Foundry module socket bridge.
- *
- * Responsibilities:
- *
- * RelayStateStore
- *      ↓
- * authoritative socket packets
- *      ↓
- * Foundry module socket
- *      ↓
- * PortraitStateStore
- *
- * The Portrait Bar itself never communicates with this service directly.
- */
 export class SocketService {
   constructor() {
     // #region Runtime State
 
     this._initialized = false;
 
-    /**
-     * Whether THIS client is currently acting as the authoritative
-     * relay host.
-     *
-     * The future Relay Controller owns the decision to enable this.
-     */
     this._authoritative = false;
 
-    /**
-     * Foundry User ID of the currently recognized relay-host GM.
-     *
-     * This allows clients to reject authoritative packets from other
-     * users once a host has been established.
-     */
     this._authorityUserId = null;
 
     this._unsubscribeRelayState = null;
@@ -199,11 +160,6 @@ export class SocketService {
 
   // #region Initialization
 
-  /**
-   * Register the Foundry module socket listener.
-   *
-   * This should run once on every connected Foundry client.
-   */
   initialize() {
     if (this._initialized) {
       return;
@@ -222,9 +178,6 @@ export class SocketService {
   }
 
 
-  /**
-   * Remove socket listeners and relay-state subscriptions.
-   */
   destroy() {
     if (this._initialized) {
       game.socket.off(
@@ -241,15 +194,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Authority Management
 
-  /**
-   * Set the Foundry User which clients should recognize as the current
-   * authoritative relay host.
-   *
-   * The Relay Controller will eventually keep this synchronized.
-   */
   setAuthorityUserId(userId) {
     if (!userId) {
       this._authorityUserId = null;
@@ -283,11 +229,6 @@ export class SocketService {
   }
 
 
-  /**
-   * Enable or disable authoritative behavior on this client.
-   *
-   * Only a GM may become authoritative.
-   */
   setAuthoritative(enabled) {
     const next =
       Boolean(enabled);
@@ -320,10 +261,6 @@ export class SocketService {
 
       relayState.startWatchdog();
 
-      /*
-       * Establish authoritative state immediately for already-connected
-       * clients.
-       */
       this.broadcastFullSync();
 
       debugLog(
@@ -343,29 +280,19 @@ export class SocketService {
   }
 
 
-  /**
-   * Return whether this client currently owns authoritative socket output.
-   */
   isAuthoritative() {
     return this._authoritative;
   }
 
 
-  /**
-   * Return the recognized relay-host User ID.
-   */
   getAuthorityUserId() {
     return this._authorityUserId;
   }
 
   // #endregion
 
-
   // #region Relay State Subscription
 
-  /**
-   * Listen for authoritative relay-state changes.
-   */
   _subscribeToRelayState() {
     if (this._unsubscribeRelayState) {
       return;
@@ -381,10 +308,6 @@ export class SocketService {
       );
   }
 
-
-  /**
-   * Stop listening to authoritative relay state.
-   */
   _unsubscribeFromRelayState() {
     if (!this._unsubscribeRelayState) {
       return;
@@ -396,10 +319,6 @@ export class SocketService {
       null;
   }
 
-
-  /**
-   * Convert RelayStateStore events into socket output.
-   */
   _onRelayStateEvent(event) {
     if (!this._authoritative) {
       return;
@@ -417,10 +336,6 @@ export class SocketService {
         this.broadcastFullSync();
         break;
 
-      /*
-       * resetSpeakingStates() already emits an individual
-       * SPEAKING_UPDATE for each affected Discord user.
-       */
       case RELAY_STATE_EVENTS.RESET_SPEAKING:
         break;
 
@@ -434,9 +349,6 @@ export class SocketService {
 
   // #region Socket Envelope Creation
 
-  /**
-   * Create the common packet envelope.
-   */
   _makeEnvelope(
     event,
     data = {}
@@ -461,9 +373,6 @@ export class SocketService {
   }
 
 
-  /**
-   * Emit one packet through Foundry's module socket.
-   */
   _emit(payload) {
     debugLog(
       "Emitting:",
@@ -478,13 +387,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Incremental Speaking Updates
 
-  /**
-   * Convert one authoritative Discord state into a Foundry User state and
-   * distribute it.
-   */
   _publishSpeakingState(
     discordState,
     reason = "relay-event"
@@ -504,10 +408,6 @@ export class SocketService {
         discordUserId
       );
 
-    /*
-     * Unmapped users remain a GM Relay Controller diagnostic concern.
-     * They do not create arbitrary PortraitStateStore entries.
-     */
     if (!user) {
       debugLog(
         "Skipping unmapped Discord user:",
@@ -547,11 +447,6 @@ export class SocketService {
       reason
     };
 
-    /*
-     * Foundry's module socket relays packets to other clients.
-     * Apply the update locally as well so the authoritative GM sees the
-     * same state immediately.
-     */
     this._applySpeakingUpdate(
       data
     );
@@ -567,9 +462,6 @@ export class SocketService {
   }
 
 
-  /**
-   * Apply one authoritative speaking update to local portrait state.
-   */
   _applySpeakingUpdate(data) {
     const userId =
       String(
@@ -623,12 +515,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Full Synchronization
 
-  /**
-   * Build a Foundry-User-keyed snapshot from authoritative Discord state.
-   */
   _buildPortraitStateSnapshot() {
     const speakingStates =
       relayState.getSpeakingStates();
@@ -674,12 +562,6 @@ export class SocketService {
   }
 
 
-  /**
-   * Request current authoritative state.
-   *
-   * Any client may issue this request. Only the active authoritative
-   * service should respond.
-   */
   requestFullSync() {
     if (!this._initialized) {
       return;
@@ -700,14 +582,6 @@ export class SocketService {
     );
   }
 
-
-  /**
-   * Broadcast authoritative current state.
-   *
-   * targetUserId:
-   * - null -> all clients may apply it
-   * - User ID -> only that client applies it
-   */
   broadcastFullSync(
     targetUserId = null
   ) {
@@ -727,10 +601,6 @@ export class SocketService {
         }
       );
 
-    /*
-     * If broadcasting to everyone, also apply the authoritative snapshot
-     * on the host itself.
-     */
     if (!targetUserId) {
       portraitState.replaceAll(
         states
@@ -742,10 +612,6 @@ export class SocketService {
     return true;
   }
 
-
-  /**
-   * Apply a full authoritative state snapshot.
-   */
   _applyFullSync(states) {
     if (
       !states
@@ -765,9 +631,6 @@ export class SocketService {
       const [userId, state]
       of Object.entries(states)
     ) {
-      /*
-       * Never create portrait state for an unknown Foundry User.
-       */
       if (!game.users.get(userId)) {
         continue;
       }
@@ -792,14 +655,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Reset Speaking
 
-  /**
-   * Tell clients to immediately reset all speaking state.
-   *
-   * This is primarily intended for explicit GM administrative resets.
-   */
   broadcastResetSpeaking() {
     if (!this._authoritative) {
       return false;
@@ -818,12 +675,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Incoming Socket Handling
 
-  /**
-   * Process one incoming packet from the Foundry module socket.
-   */
   _onSocketMessage(payload) {
     debugLog(
       "Received:",
@@ -871,11 +724,6 @@ export class SocketService {
     }
   }
 
-
-  /**
-   * Verify that an incoming authoritative packet identifies a valid GM
-   * and, once known, the currently selected relay host.
-   */
   _isTrustedAuthoritativePacket(
     payload
   ) {
@@ -902,9 +750,6 @@ export class SocketService {
       return false;
     }
 
-    /*
-     * Once the active relay host is known, reject other GMs.
-     */
     if (
       this._authorityUserId
       && payload.senderUserId
@@ -913,13 +758,6 @@ export class SocketService {
       return false;
     }
 
-    /*
-     * During initial bootstrap, a valid GM authoritative packet can
-     * establish which GM owns the relay.
-     *
-     * The Relay Controller will later provide explicit host ownership
-     * and eliminate this bootstrap ambiguity.
-     */
     if (!this._authorityUserId) {
       this._authorityUserId =
         payload.senderUserId;
@@ -933,10 +771,6 @@ export class SocketService {
     return true;
   }
 
-
-  /**
-   * Handle ordinary client full-sync requests.
-   */
   _handleFullSyncRequest(
     payload
   ) {
@@ -974,10 +808,6 @@ export class SocketService {
     );
   }
 
-
-  /**
-   * Dispatch an accepted authoritative packet.
-   */
   _handleAuthoritativePacket(
     payload
   ) {
@@ -989,10 +819,6 @@ export class SocketService {
         break;
 
       case SOCKET_EVENTS.FULLSYNC_RESPONSE:
-        /*
-         * A targeted response should only be applied by the intended
-         * client.
-         */
         if (
           payload.targetUserId
           && payload.targetUserId
@@ -1017,12 +843,8 @@ export class SocketService {
 
   // #endregion
 
-
   // #region Diagnostics
 
-  /**
-   * Return a lightweight socket-service status snapshot.
-   */
   getStatus() {
     return {
       initialized:

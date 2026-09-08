@@ -19,9 +19,6 @@ import {
 
 const LOG_PREFIX = "[FoundryVTT_Max_Headroom]";
 
-/**
- * Relay connection/health states.
- */
 export const RELAY_STATUS = Object.freeze({
   DISCONNECTED: "disconnected",
   CONNECTED: "connected",
@@ -30,9 +27,6 @@ export const RELAY_STATUS = Object.freeze({
   ERROR: "error"
 });
 
-/**
- * RelayStateStore subscription event types.
- */
 export const RELAY_STATE_EVENTS = Object.freeze({
   RELAY_STATUS: "relay-status",
   SPEAKING_UPDATE: "speaking-update",
@@ -41,12 +35,6 @@ export const RELAY_STATE_EVENTS = Object.freeze({
   UNMAPPED_UPDATE: "unmapped-update"
 });
 
-/**
- * How frequently the watchdog checks relay and speaker freshness.
- *
- * This is intentionally much shorter than the configured stale thresholds
- * while remaining inexpensive.
- */
 const WATCHDOG_INTERVAL_MS = 500;
 
 const DEFAULT_RELAY_HEARTBEAT_TIMEOUT_MS = 90000;
@@ -56,11 +44,6 @@ const DEFAULT_RELAY_HEARTBEAT_TIMEOUT_MS = 90000;
 
 // #region Internal Helpers
 
-/**
- * Normalize a Discord User ID.
- *
- * Discord snowflakes must remain strings.
- */
 function normalizeDiscordUserId(value) {
   if (
     value === null
@@ -72,9 +55,6 @@ function normalizeDiscordUserId(value) {
   return String(value).trim();
 }
 
-/**
- * Normalize a Discord speaking-state record.
- */
 function normalizeSpeakingState(state = {}) {
   return {
     discordUserId:
@@ -116,9 +96,6 @@ function normalizeSpeakingState(state = {}) {
   };
 }
 
-/**
- * Return the configured stale-speaker timeout.
- */
 function getStaleSpeakerTimeoutMs() {
   const value = Number(
     getSetting(
@@ -136,9 +113,6 @@ function getStaleSpeakerTimeoutMs() {
   );
 }
 
-/**
- * Verify that authoritative relay mutations are being performed by a GM.
- */
 function requireGM() {
   if (!game.user?.isGM) {
     throw new Error(
@@ -167,27 +141,8 @@ function normalizeHeartbeatTimeout(
 
 // #endregion
 
-
 // #region Relay State Store
 
-/**
- * GM-authoritative runtime relay state.
- *
- * This store owns:
- *
- * - relay connection/health information
- * - current Discord speaking state
- * - stale-speaker correction
- * - unmapped Discord-user diagnostics
- *
- * It does not:
- *
- * - render UI
- * - communicate directly with StreamKit
- * - communicate through Foundry sockets
- *
- * Those responsibilities belong to later layers.
- */
 export class RelayStateStore {
   constructor() {
     // #region Relay Health State
@@ -209,18 +164,9 @@ export class RelayStateStore {
 
     // #region Speaking State
 
-    /**
-     * Map<discordUserId, speakingState>
-     */
     this._speakingStates =
       new Map();
 
-    /**
-     * Diagnostic records for Discord users which do not currently map
-     * to a Foundry User.
-     *
-     * Mapping determination will be performed by the relay controller.
-     */
     this._unmappedUsers =
       new Map();
 
@@ -239,16 +185,10 @@ export class RelayStateStore {
 
   // #region Relay Health Readers
 
-  /**
-   * Return the current relay connection status.
-   */
   getRelayStatus() {
     return this._relayStatus;
   }
 
-  /**
-   * Return a snapshot of relay health information.
-   */
   getRelayHealth() {
     return {
       status:
@@ -277,13 +217,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Relay Health Writers
 
-
-  /**
-   * Mark the relay as ready/connected.
-   */
   markReady({
     protocolVersion = PROTOCOL_VERSION,
     scriptVersion,
@@ -335,9 +270,6 @@ export class RelayStateStore {
     return this.getRelayHealth();
   }
 
-  /**
-   * Record a valid relay heartbeat.
-   */
   recordHeartbeat({
     protocolVersion = PROTOCOL_VERSION,
     scriptVersion,
@@ -396,12 +328,6 @@ export class RelayStateStore {
     return this.getRelayHealth();
   }
 
-  /**
-   * Mark the relay disconnected.
-   *
-   * Existing user mappings and speaking-state records are retained.
-   * The stale-speaker watchdog will safely clear any speaking=true records.
-   */
   markDisconnected() {
     requireGM();
 
@@ -415,9 +341,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Mark the relay incompatible with this protocol version.
-   */
   markIncompatible(
     protocolVersion = null
   ) {
@@ -431,9 +354,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Record an external relay error.
-   */
   markError(error) {
     requireGM();
 
@@ -447,9 +367,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Internal relay-status setter.
-   */
   _setRelayStatus(status) {
     if (
       this._relayStatus
@@ -472,12 +389,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Speaking State Readers
 
-  /**
-   * Return one Discord user's authoritative speaking state.
-   */
   getSpeakingState(
     discordUserId
   ) {
@@ -498,9 +411,6 @@ export class RelayStateStore {
       : null;
   }
 
-  /**
-   * Return all authoritative Discord speaking states as a plain object.
-   */
   getSpeakingStates() {
     return Object.fromEntries(
       Array.from(
@@ -513,9 +423,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Return all users currently marked speaking.
-   */
   getActiveSpeakers() {
     return Array.from(
       this._speakingStates.values()
@@ -533,16 +440,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Speaking State Writers
 
-/**
- * Apply one normalized authoritative Discord speaking update.
- *
- * This expects the Relay Controller to have already
- * validated and normalized the companion-extension
- * speaking envelope.
- */
   updateSpeakingState(
     update
   ) {
@@ -589,11 +488,6 @@ export class RelayStateStore {
     };
   }
 
-  /**
-   * Reset every Discord user to speaking=false.
-   *
-   * Mute and deafen states are preserved.
-   */
   resetSpeakingStates(
     reason = "manual-reset"
   ) {
@@ -649,11 +543,6 @@ export class RelayStateStore {
     return changed;
   }
 
-  /**
-   * Completely clear authoritative Discord speaking records.
-   *
-   * Primarily useful for development/reset scenarios.
-   */
   clearSpeakingStates() {
     requireGM();
 
@@ -669,12 +558,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Unmapped Discord Users
 
-  /**
-   * Record a Discord user which does not currently map to a Foundry User.
-   */
   recordUnmappedUser({
     discordUserId,
     username,
@@ -727,11 +612,6 @@ export class RelayStateStore {
     };
   }
 
-  /**
-   * Remove a Discord user from the unmapped diagnostics list.
-   *
-   * The relay controller can call this after a mapping becomes available.
-   */
   clearUnmappedUser(
     discordUserId
   ) {
@@ -762,9 +642,6 @@ export class RelayStateStore {
     return removed;
   }
 
-  /**
-   * Return unmapped Discord-user diagnostics.
-   */
   getUnmappedUsers() {
     return Array.from(
       this._unmappedUsers.values()
@@ -777,15 +654,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Full State Snapshot
 
-  /**
-   * Return the complete authoritative relay state.
-   *
-   * This will later be used by socket-service.js for late-client
-   * synchronization.
-   */
   getFullState() {
     return {
       protocolVersion:
@@ -807,14 +677,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Watchdog
 
-  /**
-   * Start relay-health and stale-speaker monitoring.
-   *
-   * Intended to run only on the authoritative GM relay host.
-   */
   startWatchdog() {
     requireGM();
 
@@ -831,9 +695,6 @@ export class RelayStateStore {
       );
   }
 
-  /**
-   * Stop relay-health and stale-speaker monitoring.
-   */
   stopWatchdog() {
     if (!this._watchdogTimer) {
       return;
@@ -847,9 +708,6 @@ export class RelayStateStore {
       null;
   }
 
-  /**
-   * Perform one watchdog pass.
-   */
   _runWatchdog() {
     if (!game.user?.isGM) {
       return;
@@ -867,9 +725,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Mark the relay stale if heartbeats stop arriving.
-   */
   _checkRelayHeartbeat(
     currentTime
   ) {
@@ -901,13 +756,6 @@ export class RelayStateStore {
     );
   }
 
-  /**
-   * Clear speaking=true records which have received no sufficiently recent
-   * authoritative Discord update.
-   *
-   * This protects clients from a user becoming permanently stuck in the
-   * talking state if a speaking=false event is lost.
-   */
   _checkStaleSpeakers(
     currentTime
   ) {
@@ -958,12 +806,6 @@ export class RelayStateStore {
     }
   }
   
-    /**
-   * Immediately perform one watchdog pass.
-   *
-   * Primarily exposed for deterministic development/testing so stale-state
-   * behavior does not require waiting for the normal watchdog interval.
-   */
   runWatchdogNow() {
     requireGM();
 
@@ -974,14 +816,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Event Subscription
 
-  /**
-   * Subscribe to authoritative relay-state changes.
-   *
-   * Returns an unsubscribe function.
-   */
   subscribe(callback) {
     if (
       typeof callback
@@ -1003,9 +839,6 @@ export class RelayStateStore {
     };
   }
 
-  /**
-   * Notify relay-state consumers.
-   */
   _emit(event) {
     for (
       const listener
@@ -1024,12 +857,8 @@ export class RelayStateStore {
 
   // #endregion
 
-
   // #region Lifecycle
 
-  /**
-   * Stop timers and clear local runtime state.
-   */
   destroy() {
     this.stopWatchdog();
 
@@ -1046,9 +875,6 @@ export class RelayStateStore {
 
 // #region Singleton
 
-/**
- * Shared GM-authoritative relay state.
- */
 export const relayState =
   new RelayStateStore();
 

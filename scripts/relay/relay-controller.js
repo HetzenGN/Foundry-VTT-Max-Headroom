@@ -74,10 +74,6 @@ function debugLog(...args) {
   );
 }
 
-
-/**
- * Relay-host management is GM-only.
- */
 function requireGM() {
   if (!game.user?.isGM) {
     throw new Error(
@@ -86,9 +82,6 @@ function requireGM() {
   }
 }
 
-/**
- * Return whether a timestamp is reasonable for a live relay packet.
- */
 function isFreshTimestamp(timestamp) {
   const value =
     Number(timestamp);
@@ -119,23 +112,8 @@ function isFreshTimestamp(timestamp) {
 
 // #endregion
 
-
 // #region Relay Controller
 
-/**
- * GM-side controller for the external Discord StreamKit relay.
- *
- * Responsibilities:
- *
- * - explicit relay-host ownership
- * - per-session nonce
- * - StreamKit popup lifecycle
- * - window.postMessage listener
- * - origin/source/nonce/version validation
- * - normalized relay-state updates
- *
- * It does not render the GM administration UI.
- */
 export class RelayController {
   constructor() {
     // #region Runtime State
@@ -166,14 +144,8 @@ export class RelayController {
     // #endregion
   }
 
-
   // #region Initialization
 
-  /**
-   * Initialize relay-host synchronization.
-   *
-   * Call once after Foundry is ready.
-   */
   initialize() {
     if (this._initialized) {
       return;
@@ -181,12 +153,6 @@ export class RelayController {
 
     socketService.initialize();
 
-    /*
-     * World Setting documents are synchronized by Foundry.
-     *
-     * updateSetting is the document-specific form of the generic
-     * updateDocument hook.
-     */
     this._settingHookId =
       Hooks.on(
         "updateSetting",
@@ -211,10 +177,6 @@ export class RelayController {
     );
   }
 
-
-  /**
-   * Release runtime listeners.
-   */
   destroy() {
     this._deactivateLocalHost({
       closePopup: true
@@ -236,12 +198,8 @@ export class RelayController {
 
   // #endregion
 
-
   // #region Host Ownership
 
-  /**
-   * Return the Foundry User ID recorded as relay host.
-   */
   getHostUserId() {
     return String(
       getSetting(
@@ -251,10 +209,6 @@ export class RelayController {
     );
   }
 
-
-  /**
-   * Return the configured relay-host User.
-   */
   getHostUser() {
     const userId =
       this.getHostUserId();
@@ -270,22 +224,10 @@ export class RelayController {
   }
 
 
-  /**
-   * Return whether this browser is currently the relay host.
-   */
   isLocalHost() {
     return this._isLocalHost;
   }
 
-
-  /**
-   * Claim relay-host ownership.
-   *
-   * If another connected GM already owns the relay, the claim is rejected
-   * unless force=true.
-   *
-   * An inactive/disconnected previous host may be replaced normally.
-   */
   async claimHost({
     force = false
   } = {}) {
@@ -311,9 +253,6 @@ export class RelayController {
       game.user.id
     );
 
-    /*
-     * Re-read server-backed state before considering the claim successful.
-     */
     const confirmedHostId =
       this.getHostUserId();
 
@@ -332,9 +271,6 @@ export class RelayController {
   }
 
 
-  /**
-   * Release relay-host ownership.
-   */
   async releaseHost() {
     requireGM();
 
@@ -345,9 +281,6 @@ export class RelayController {
       return false;
     }
 
-    /*
-     * Tell clients to return to idle before authority is relinquished.
-     */
     relayState.resetSpeakingStates(
       "relay-host-release"
     );
@@ -369,17 +302,10 @@ export class RelayController {
   }
 
 
-  /**
-   * React to the authoritative shared host setting.
-   */
   _syncHostOwnership() {
     const hostUserId =
       this.getHostUserId();
 
-    /*
-     * All clients use the shared setting to determine which GM's socket
-     * packets are authoritative.
-     */
     if (
       hostUserId
       && game.users.get(hostUserId)?.isGM
@@ -407,10 +333,6 @@ export class RelayController {
     }
   }
 
-
-  /**
-   * Activate authoritative services on this GM client.
-   */
   _activateLocalHost() {
     if (this._isLocalHost) {
       return;
@@ -431,10 +353,6 @@ export class RelayController {
     );
   }
 
-
-  /**
-   * Stop authoritative services on this client.
-   */
   _deactivateLocalHost({
     closePopup = true
   } = {}) {
@@ -466,13 +384,6 @@ export class RelayController {
 
   // #region Popup Management
 
-/**
- * Open the configured Discord StreamKit Voice page.
- *
- * The Chromium companion extension now owns relay
- * transport and health. This window is only a
- * convenient StreamKit launcher.
- */
 openRelayPopup() {
   requireGM();
 
@@ -531,12 +442,6 @@ openRelayPopup() {
     );
   }
 
-
-  /*
-   * Retain the reference only for best-effort local
-   * cleanup. StreamKit/browser isolation may sever
-   * the relationship, so it is not relay health.
-   */
   this._popupWindow =
     popupWindow;
 
@@ -544,11 +449,6 @@ openRelayPopup() {
   return true;
 }
 
-
-  /**
-   * Best-effort close of the locally tracked
-   * StreamKit launcher window.
-   */
   closeRelayPopup() {
     try {
       if (
@@ -559,10 +459,6 @@ openRelayPopup() {
       }
 
     } catch {
-      /*
-      * StreamKit/browser isolation may prevent
-      * cross-origin window cleanup.
-      */
     }
 
 
@@ -574,9 +470,6 @@ openRelayPopup() {
 
   // #region Extension Ingress
 
-/**
- * Receive companion-extension connection health.
- */
 receiveExtensionRelayHealth(
   rawPayload
 ) {
@@ -700,9 +593,6 @@ receiveExtensionRelayHealth(
 }
 
 
-/**
- * Validate extension relay-health metadata.
- */
 _validateExtensionRelayHealth(
   payload
 ) {
@@ -814,10 +704,6 @@ _validateExtensionRelayHealth(
 }
 
 
-/**
- * Count any valid extension traffic as evidence
- * that the companion transport is currently alive.
- */
 _recordExtensionActivity(
   timestamp = nowTs()
 ) {
@@ -841,15 +727,6 @@ _recordExtensionActivity(
   });
 }
 
-/**
- * Receive one speaking event delivered by the
- * Max Headroom Chromium companion extension.
- *
- * The extension envelope is validated here,
- * converted into the module's normalized internal
- * speaking record, then applied through the
- * authoritative relay-state path.
- */
 receiveExtensionSpeakingEvent(
   rawPayload
 ) {
@@ -892,16 +769,6 @@ receiveExtensionSpeakingEvent(
   const extensionEvent =
     validation.payload;
 
-
-  /**
-   * Receive one speaking event delivered by the
-   * Max Headroom Chromium companion extension.
-   *
-   * The extension envelope is validated here, then
-   * converted into the module's canonical Discord
-   * speaking record and applied through the existing
-   * authoritative relay-state path.
-   */
   const protocolPayload =
     makeDiscordSpeaking({
       discordUserId:
@@ -926,12 +793,6 @@ receiveExtensionSpeakingEvent(
   );
 
 
-  /*
-  * Extension ingress has already been validated.
-  *
-  * Enter the shared Discord-speaking processing
-  * path directly.
-  */
   this._handleDiscordSpeaking(
     protocolPayload
   );
@@ -951,10 +812,6 @@ receiveExtensionSpeakingEvent(
   };
 }
 
-/**
- * Receive Discord user metadata discovered by the
- * Chromium companion extension.
- */
 receiveExtensionDiscordUserEvent(
   rawPayload
 ) {
@@ -1029,15 +886,6 @@ receiveExtensionDiscordUserEvent(
   };
 }
 
-/**
- * Apply Discord voice-state metadata which affects
- * reactive portrait presentation.
- *
- * Speaking remains authoritative from
- * SPEAKING_START / SPEAKING_STOP.
- *
- * Muting immediately forces speaking=false.
- */
 _handleDiscordVoiceState(
   voiceEvent
 ) {
@@ -1080,10 +928,6 @@ _handleDiscordVoiceState(
 
     muted,
 
-    /*
-     * Deafened state is intentionally not
-     * implemented as portrait behavior.
-     */
     deafened:
       false,
 
@@ -1101,18 +945,11 @@ _handleDiscordVoiceState(
 }
 
 
-/**
- * Return users observed through the current
- * extension/StreamKit session.
- */
 getDiscoveredDiscordUsers() {
   return discordUserDirectory.list();
 }
 
 
-/**
- * Validate one extension Discord-user observation.
- */
 _validateExtensionDiscordUserEvent(
   payload
 ) {
@@ -1281,10 +1118,6 @@ _validateExtensionDiscordUserEvent(
   };
 }
 
-/**
- * Validate the small transport envelope supplied
- * by the Chromium extension.
- */
 _validateExtensionSpeakingEvent(
   payload
 ) {
@@ -1413,9 +1246,6 @@ _validateExtensionSpeakingEvent(
 
 // #region Validation Diagnostics
 
-/**
- * Record a validation rejection for GM diagnostics.
- */
   _recordRejectedMessage(
     reason,
     payload
@@ -1443,13 +1273,8 @@ _validateExtensionSpeakingEvent(
 
 // #endregion
 
-
 // #region Discord Speaking Processing
 
-
-  /**
-   * Handle normalized Discord speaking state.
-   */
   _handleDiscordSpeaking(payload) {
     if (
       !isDiscordSpeakingMessage(
@@ -1503,11 +1328,6 @@ _validateExtensionSpeakingEvent(
       );
     }
 
-    /*
-     * Keep authoritative Discord state even for currently-unmapped users.
-     *
-     * socket-service.js simply declines to create a portrait for them.
-     */
     const current =
       relayState.getSpeakingState(
         normalized.discordUserId
@@ -1517,17 +1337,10 @@ _validateExtensionSpeakingEvent(
     relayState.updateSpeakingState({
       ...normalized,
 
-      /*
-      * Speaking events do not own mute state.
-      * Preserve the latest VOICE_STATE_* value.
-      */
       muted:
         current?.muted
         ?? false,
 
-      /*
-      * Deafened behavior is intentionally unused.
-      */
       deafened:
         false
     });
@@ -1538,9 +1351,6 @@ _validateExtensionSpeakingEvent(
 
   // #region Diagnostics
 
-/**
- * Return Relay Controller runtime diagnostics.
- */
   getStatus() {
     const host =
       this.getHostUser();

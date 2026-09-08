@@ -10,12 +10,6 @@ import {
 
 // #region Setting Keys
 
-/**
- * Centralized setting keys for FoundryVTT_Max_Headroom.
- *
- * Other module files should import these constants instead of repeating
- * setting-name string literals.
- */
 export const SETTING_KEYS = Object.freeze({
   BAR_ANCHOR: "barAnchor",
   ORIENTATION: "orientation",
@@ -46,11 +40,6 @@ export const SETTING_KEYS = Object.freeze({
 
 // #region Setting Registration
 
-/**
- * Register all Foundry settings used by the module.
- *
- * Called from scripts/main.js during Foundry's init hook.
- */
 export function registerSettings() {
   // #region Portrait Bar Settings
 
@@ -173,12 +162,6 @@ game.settings.register(
   // #endregion
 
   // #region User Portrait Bar Settings
-
-/*
- * These settings are intentionally hidden from Foundry's standard
- * settings form. They are managed through the Portrait Bar Preferences
- * submenu and through direct drag/scale interaction with the bar.
- */
 
 game.settings.register(
   MODULE_ID,
@@ -332,23 +315,14 @@ game.settings.register(
 
 // #region Setting Accessors
 
-/**
- * Read a registered module setting.
- */
 export function getSetting(key) {
   return game.settings.get(MODULE_ID, key);
 }
 
-/**
- * Update a registered module setting.
- */
 export function setSetting(key, value) {
   return game.settings.set(MODULE_ID, key, value);
 }
 
-/**
- * Return whether detailed module debugging is enabled.
- */
 export function isDebugEnabled() {
   return Boolean(
     getSetting(SETTING_KEYS.DEBUG_MODE)
@@ -360,10 +334,6 @@ export function isDebugEnabled() {
 const MIN_USER_SCALE = 0.5;
 const MAX_USER_SCALE = 2.0;
 
-/**
- * Settings whose changes require the Portrait Bar to perform a full
- * presentation refresh.
- */
 const PORTRAIT_RENDER_SETTING_KEYS =
   new Set([
     SETTING_KEYS.BAR_ANCHOR,
@@ -380,10 +350,6 @@ const PORTRAIT_RENDER_SETTING_KEYS =
   ]);
 
 
-/**
- * Determine whether a Foundry Setting document/update affects the rendered
- * Portrait Bar layout.
- */
 export function isPortraitRenderSettingKey(
   settingKey
 ) {
@@ -403,16 +369,6 @@ export function isPortraitRenderSettingKey(
   );
 }
 
-
-/**
- * Resolve a tri-state Boolean user preference.
- *
- * Stored values:
- *
- * default -> GM world setting
- * true    -> enabled
- * false   -> disabled
- */
 function resolveBooleanOverride(
   userKey,
   worldKey
@@ -436,11 +392,6 @@ function resolveBooleanOverride(
   );
 }
 
-
-/**
- * Return the effective Portrait Bar presentation settings for the
- * current Foundry User.
- */
 export function getPortraitPresentationSettings() {
   const userAnchor =
     String(
@@ -537,10 +488,6 @@ export function getPortraitPresentationSettings() {
   };
 }
 
-
-/**
- * Save this user's free-position coordinates.
- */
 export async function setUserBarPosition(
   x,
   y
@@ -557,9 +504,6 @@ export async function setUserBarPosition(
 }
 
 
-/**
- * Save this user's proportional Portrait Bar scale.
- */
 export async function setUserBarScale(
   scale
 ) {
@@ -578,12 +522,6 @@ export async function setUserBarScale(
   );
 }
 
-
-/**
- * Return position and size to resolution-safe GM defaults.
- *
- * Orientation, names, and animation remain the user's preferences.
- */
 export async function resetUserBarPositionAndSize() {
   await setSetting(
     SETTING_KEYS.USER_POSITION_X,

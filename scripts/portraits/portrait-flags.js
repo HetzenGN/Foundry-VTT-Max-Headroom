@@ -11,12 +11,6 @@ import {
 
 // #region Constants
 
-/**
- * Namespace used for reactive portrait User flags.
- *
- * FLAG_KEYS.ROOT should match MODULE_ID according to the shared protocol,
- * but using it here keeps the flag namespace defined by protocol.js.
- */
 const FLAG_SCOPE = FLAG_KEYS.ROOT;
 
 export const PORTRAIT_DISPLAY_NAME_MODES =
@@ -31,13 +25,6 @@ export const PORTRAIT_DISPLAY_NAME_MODES =
       "custom"
   });
 
-/**
- * Default persistent reactive portrait configuration for a Foundry User.
- *
- * These values describe configuration only.
- * Transient states such as speaking, muted, or deafened are NOT persisted
- * as User flags.
- */
 export const DEFAULT_REACTIVE_PORTRAIT_CONFIG = Object.freeze({
   discordUserId: "",
 
@@ -58,9 +45,6 @@ export const DEFAULT_REACTIVE_PORTRAIT_CONFIG = Object.freeze({
 
 // #region Internal Helpers
 
-/**
- * Ensure the supplied value appears to be a Foundry User document.
- */
 function requireUser(user) {
   if (
     !user
@@ -75,22 +59,12 @@ function requireUser(user) {
   return user;
 }
 
-/**
- * Normalize a Discord User ID.
- *
- * Discord snowflake IDs should remain strings. Do not convert them to
- * JavaScript Numbers because sufficiently large IDs can exceed safe
- * integer precision.
- */
 function normalizeDiscordUserId(value) {
   if (value === null || value === undefined) return "";
 
   return String(value).trim();
 }
 
-/**
- * Normalize the configured portrait display-name mode.
- */
 function normalizeDisplayNameMode(value) {
   const normalized =
     String(
@@ -112,10 +86,6 @@ function normalizeDisplayNameMode(value) {
     .displayNameMode;
 }
 
-
-/**
- * Normalize a custom portrait display name.
- */
 function normalizeCustomDisplayName(value) {
   if (typeof value !== "string") {
     return "";
@@ -124,18 +94,12 @@ function normalizeCustomDisplayName(value) {
   return value.trim();
 }
 
-/**
- * Normalize an image path.
- */
 function normalizeImagePath(value) {
   if (typeof value !== "string") return "";
 
   return value.trim();
 }
 
-/**
- * Normalize a sort-order value.
- */
 function normalizeSortOrder(value) {
   const number = Number(value);
 
@@ -146,9 +110,6 @@ function normalizeSortOrder(value) {
   return Math.trunc(number);
 }
 
-/**
- * Normalize a complete or partial reactive portrait configuration.
- */
 function normalizeConfig(config = {}) {
   return {
     discordUserId: normalizeDiscordUserId(
@@ -187,11 +148,6 @@ function normalizeConfig(config = {}) {
   };
 }
 
-/**
- * Verify that the current Foundry user may modify reactive portrait flags.
- *
- * Reactive portrait configuration is GM-controlled.
- */
 function requireGM() {
   if (!game.user?.isGM) {
     throw new Error(
@@ -204,11 +160,6 @@ function requireGM() {
 
 // #region Configuration Readers
 
-/**
- * Read the reactive portrait configuration for one Foundry User.
- *
- * Missing flags fall back to safe defaults.
- */
 export function getReactivePortraitConfig(user) {
   requireUser(user);
 
@@ -271,10 +222,6 @@ export function getReactivePortraitConfig(user) {
   });
 }
 
-/**
- * Return all Foundry Users together with their reactive portrait
- * configuration.
- */
 export function getAllReactivePortraitConfigs() {
   return game.users.map((user) => ({
     user,
@@ -282,12 +229,6 @@ export function getAllReactivePortraitConfigs() {
   }));
 }
 
-/**
- * Return Users which are enabled for the Reactive Portrait Bar.
- *
- * Results are sorted first by configured sortOrder and then by Foundry
- * user name to provide deterministic ordering.
- */
 export function getConfiguredReactiveUsers() {
   return getAllReactivePortraitConfigs()
     .filter(({ config }) => config.enabled)
@@ -305,11 +246,6 @@ export function getConfiguredReactiveUsers() {
     });
 }
 
-/**
- * Find the Foundry User mapped to a Discord User ID.
- *
- * Returns null when no mapping exists.
- */
 export function findUserByDiscordId(discordUserId) {
   const targetId = normalizeDiscordUserId(discordUserId);
 
@@ -330,15 +266,6 @@ export function findUserByDiscordId(discordUserId) {
 
 // #region Configuration Writers
 
-/**
- * Update one Foundry User's reactive portrait configuration.
- *
- * Only supplied properties are changed. Existing values for properties not
- * present in `changes` are preserved.
- *
- * User.setFlag is intentionally used here so persistent configuration
- * remains clearly stored as namespaced Foundry User flags.
- */
 export async function setReactivePortraitConfig(
   user,
   changes = {}
@@ -444,13 +371,6 @@ export async function setReactivePortraitConfig(
     ]);
   }
 
-  /*
-   * Perform flag writes sequentially.
-   *
-   * Avoid issuing simultaneous updates against the same User document.
-   * Configuration changes are infrequent enough that a handful of
-   * sequential flag updates are preferable to competing document updates.
-   */
   for (const [key, value] of writes) {
     await user.setFlag(
       FLAG_SCOPE,
@@ -462,9 +382,6 @@ export async function setReactivePortraitConfig(
   return getReactivePortraitConfig(user);
 }
 
-/**
- * Reset one Foundry User's reactive portrait configuration to defaults.
- */
 export async function resetReactivePortraitConfig(user) {
   requireGM();
   requireUser(user);
@@ -475,12 +392,6 @@ export async function resetReactivePortraitConfig(user) {
   );
 }
 
-/**
- * Remove all reactive portrait configuration flags from one Foundry User.
- *
- * This differs from resetReactivePortraitConfig because the flags themselves
- * are removed rather than being explicitly populated with default values.
- */
 export async function clearReactivePortraitConfig(user) {
   requireGM();
   requireUser(user);
@@ -517,12 +428,6 @@ export async function clearReactivePortraitConfig(user) {
 
 // #region Validation and Diagnostics
 
-/**
- * Return basic configuration diagnostics for a Foundry User.
- *
- * This does not prevent incomplete configurations from existing. The
- * portrait bar can use these results to degrade gracefully.
- */
 export function validateReactivePortraitConfig(user) {
   requireUser(user);
 

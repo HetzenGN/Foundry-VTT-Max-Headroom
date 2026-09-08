@@ -88,17 +88,8 @@ export function nowTs() {
 
 // #endregion
 
-
 // #region Discord Speaking Records
 
-/**
- * Create the module's normalized internal
- * Discord-speaking record.
- *
- * This is no longer an external transport envelope.
- * Chromium-extension validation occurs before this
- * record is created.
- */
 export function makeDiscordSpeaking({
   discordUserId,
   username,
@@ -141,11 +132,6 @@ export function makeDiscordSpeaking({
   };
 }
 
-
-/**
- * Return whether a value has the common
- * internal protocol envelope.
- */
 export function isProtocolMessage(
   payload
 ) {
@@ -158,10 +144,6 @@ export function isProtocolMessage(
   );
 }
 
-
-/**
- * Validate one internal Discord-speaking record.
- */
 export function isDiscordSpeakingMessage(
   payload
 ) {
@@ -186,10 +168,6 @@ export function isDiscordSpeakingMessage(
   );
 }
 
-
-/**
- * Normalize one internal Discord-speaking record.
- */
 export function normalizeDiscordSpeakingMessage(
   payload
 ) {

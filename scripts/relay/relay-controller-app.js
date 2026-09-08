@@ -62,9 +62,6 @@ const STATE_REFRESH_DEBOUNCE_MS = 75;
 
 // #region Internal Helpers
 
-/**
- * Convert a timestamp into a compact human-readable age.
- */
 function formatAge(timestamp) {
   const value =
     Number(timestamp);
@@ -112,10 +109,6 @@ function formatAge(timestamp) {
   return `${hours} hour${hours === 1 ? "" : "s"} ago`;
 }
 
-
-/**
- * Choose the most useful available Discord display name.
- */
 function getDiscordDisplayName(state) {
   return (
     state?.nick
@@ -125,10 +118,6 @@ function getDiscordDisplayName(state) {
   );
 }
 
-
-/**
- * Convert an Error or arbitrary thrown value to useful text.
- */
 function getErrorMessage(error) {
   if (error instanceof Error) {
     return error.message;
@@ -198,12 +187,6 @@ function openExternalUrl(
 
 // #region Relay Controller Application
 
-/**
- * GM-only administration window for the StreamKit relay.
- *
- * This window does not process StreamKit messages itself. It controls
- * RelayController and displays state owned by RelayStateStore.
- */
 export class RelayControllerApp extends HandlebarsApplicationMixin(
   ApplicationV2
 ) {
@@ -269,9 +252,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #region Render Permission
 
-  /**
-   * This administration window is GM-only even if instantiated manually.
-   */
   _canRender(options) {
     const allowed =
       super._canRender(options);
@@ -296,9 +276,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #region Context Preparation
 
-  /**
-   * Prepare current relay/controller state for Handlebars.
-   */
   async _prepareContext(options) {
     const context =
       await super._prepareContext(options);
@@ -435,15 +412,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
         && host.id !== game.user.id
       );
 
-    /*
-     * A GM may claim normally when:
-     *
-     * - nobody owns the relay, or
-     * - the recorded owner is no longer connected.
-     *
-     * We deliberately do not present normal takeover controls while
-     * another connected GM owns the relay.
-     */
     const canClaim =
       !isLocalHost
       && (
@@ -609,12 +577,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Render Lifecycle
 
-  /**
-   * Begin live status updates while the controller window is open.
-   */
   async _onRender(
     context,
     options
@@ -629,10 +593,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
     this._startRefreshTimer();
   }
 
-
-  /**
-   * Release subscriptions and timers when the window closes.
-   */
   _onClose(options) {
     this._removeRelaySubscription();
     this._removeSettingHook();
@@ -646,12 +606,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Application Actions
 
-  /**
-   * Process data-action buttons from relay-controller.hbs.
-   */
   async _onClickAction(
     event,
     target
@@ -712,12 +668,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Relay Host Actions
 
-  /**
-   * Claim relay-host ownership for the current GM.
-   */
   async _actionClaimHost() {
     try {
       await relayController.claimHost();
@@ -741,10 +693,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
     }
   }
 
-
-  /**
-   * Release relay-host ownership.
-   */
   async _actionReleaseHost() {
     if (
       !relayController.isLocalHost()
@@ -780,12 +728,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Relay Popup Actions
 
-  /**
-   * Open or reopen the configured StreamKit relay page.
-   */
   async _actionOpenRelay() {
     if (
       !relayController.isLocalHost()
@@ -819,12 +763,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Speaking State Actions
 
-  /**
-   * Immediately return all clients to idle speaking state.
-   */
   async _actionResetSpeaking() {
     if (
       !relayController.isLocalHost()
@@ -837,20 +777,10 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
     }
 
     try {
-      /*
-       * Update authoritative state first.
-       *
-       * This emits individual speaking=false changes for any currently
-       * speaking Discord users.
-       */
       relayState.resetSpeakingStates(
         "manual-controller-reset"
       );
 
-      /*
-       * Then issue an explicit immediate client reset. This administrative
-       * action intentionally bypasses normal speech decay.
-       */
       socketService.broadcastResetSpeaking();
 
       ui.notifications.info(
@@ -875,9 +805,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #region Refresh Action
 
-  /**
-   * Manually refresh controller diagnostics.
-   */
   async _actionRefresh() {
     return this.render({
       force: true
@@ -889,9 +816,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #region Relay State Subscription
 
-  /**
-   * Refresh the controller when authoritative relay state changes.
-   */
   _ensureRelaySubscription() {
     if (
       this._unsubscribeRelayState
@@ -907,10 +831,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
       );
   }
 
-
-  /**
-   * Stop listening to RelayStateStore.
-   */
   _removeRelaySubscription() {
     if (
       !this._unsubscribeRelayState
@@ -926,12 +846,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
   // #region Host Setting Subscription
 
-  /**
-   * Refresh if relay-host ownership changes while this window is open.
-   */
   _ensureSettingHook() {
     if (
       this._settingHookId !== null
@@ -955,10 +871,6 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
       );
   }
 
-
-  /**
-   * Remove relay-host setting listener.
-   */
   _removeSettingHook() {
     if (
       this._settingHookId === null
@@ -977,13 +889,8 @@ export class RelayControllerApp extends HandlebarsApplicationMixin(
 
   // #endregion
 
-
 // #region Periodic Status Refresh
 
-/**
- * Periodically update relative-time labels without re-rendering the
- * Application.
- */
 _startRefreshTimer() {
   if (this._refreshTimer) {
     return;
@@ -1003,9 +910,6 @@ _startRefreshTimer() {
 }
 
 
-/**
- * Update all timestamp-backed relative-time labels in place.
- */
 _updateRelativeTimes() {
   if (!this.element) {
     return;
@@ -1027,10 +931,6 @@ _updateRelativeTimes() {
   }
 }
 
-
-/**
- * Stop periodic status refresh.
- */
 _stopRefreshTimer() {
   if (!this._refreshTimer) {
     return;
@@ -1044,10 +944,6 @@ _stopRefreshTimer() {
     null;
 }
 
-
-/**
- * Debounce substantive state changes into a full render.
- */
 _queueRefresh() {
   if (
     !this.rendered
@@ -1101,9 +997,6 @@ _queueRefresh() {
 }
 
 
-/**
- * Cancel a pending debounced render.
- */
 _clearQueuedRefresh() {
   if (!this._refreshDebounceTimer) {
     return;
@@ -1123,12 +1016,8 @@ _clearQueuedRefresh() {
 
 // #endregion
 
-
 // #region Settings Menu Registration
 
-/**
- * Register the Relay Controller as a GM-only settings submenu.
- */
 export function registerRelayControllerMenu() {
   game.settings.registerMenu(
     MODULE_ID,

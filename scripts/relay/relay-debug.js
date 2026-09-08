@@ -75,10 +75,6 @@ function requireLocalRelayHost() {
 }
 
 
-/**
- * Resolve a Foundry User by document, ID,
- * or exact case-insensitive name.
- */
 function resolveFoundryUser(
   userReference
 ) {
@@ -142,10 +138,6 @@ function resolveFoundryUser(
 }
 
 
-/**
- * Resolve either a configured Foundry User or
- * a direct Discord snowflake.
- */
 function resolveDiscordUserId(
   reference
 ) {
@@ -194,11 +186,6 @@ function resolveDiscordUserId(
   return value;
 }
 
-
-/**
- * Prefer the actual currently-known StreamKit
- * channel so debug events resemble live events.
- */
 function getDebugChannelId() {
   const channelId =
     String(
@@ -245,12 +232,8 @@ function getLastRejectedMessage() {
 
 // #endregion
 
-
 // #region Extension Health Simulation
 
-/**
- * Simulate a valid extension READY event.
- */
 export function simulateRelayReady({
   extensionVersion =
     DEBUG_EXTENSION_VERSION,
@@ -281,10 +264,6 @@ export function simulateRelayReady({
     .getRelayHealth();
 }
 
-
-/**
- * Simulate one valid extension heartbeat.
- */
 export function simulateRelayHeartbeat({
   extensionVersion =
     DEBUG_EXTENSION_VERSION,
@@ -316,9 +295,6 @@ export function simulateRelayHeartbeat({
 }
 
 
-/**
- * Simulate extension/StreamKit disconnection.
- */
 export function simulateRelayDisconnect({
   extensionVersion =
     DEBUG_EXTENSION_VERSION,
@@ -351,13 +327,8 @@ export function simulateRelayDisconnect({
 
 // #endregion
 
-
 // #region Speaking Simulation
 
-/**
- * Simulate the same small speaking envelope
- * delivered by the Chromium extension.
- */
 export function simulateRelaySpeaking(
   reference,
   speaking = true,
@@ -411,10 +382,6 @@ export function simulateRelaySpeaking(
 }
 
 
-/**
- * Toggle one configured Discord user's
- * speaking state.
- */
 export function toggleRelaySpeaking(
   reference
 ) {
@@ -436,10 +403,6 @@ export function toggleRelaySpeaking(
   );
 }
 
-
-/**
- * Simulate several simultaneous speakers.
- */
 export function simulateRelaySimultaneousSpeakers(
   references = []
 ) {
@@ -465,15 +428,8 @@ export function simulateRelaySimultaneousSpeakers(
 
 // #endregion
 
-
 // #region Discord User Discovery Simulation
 
-/**
- * Simulate Discord voice-state discovery.
- *
- * This exercises the same Foundry ingress used
- * by the extension's VOICE_STATE_* events.
- */
 export function simulateDiscordUserPresence(
   reference,
   present = true,
@@ -538,10 +494,6 @@ export function simulateDiscordUserPresence(
       present:
         normalizedPresent,
 
-      /*
-       * A user who is no longer present in
-       * voice cannot remain muted.
-       */
       muted:
         normalizedPresent
           ? Boolean(muted)
@@ -552,10 +504,6 @@ export function simulateDiscordUserPresence(
     });
 }
 
-/**
- * Simulate one Discord user's mute/unmute
- * through the real extension voice-state ingress.
- */
 export function simulateRelayMuted(
   reference,
   muted = true
@@ -620,9 +568,6 @@ export function simulateRelayMuted(
     });
 }
 
-/**
- * Simulate a friendly but unmapped Discord user.
- */
 export function simulateUnmappedDiscordUser(
   discordUserId =
     DEBUG_UNMAPPED_USER_ID,
@@ -679,12 +624,8 @@ export function simulateUnmappedDiscordUser(
 
 // #endregion
 
-
 // #region Extension Validation Simulation
 
-/**
- * Send a malformed extension speaking envelope.
- */
 export function simulateInvalidSpeakingEvent(
   reference
 ) {
@@ -707,10 +648,6 @@ export function simulateInvalidSpeakingEvent(
       channelId:
         getDebugChannelId(),
 
-      /*
-       * Deliberately inconsistent with
-       * SPEAKING_STOP.
-       */
       speaking:
         true,
 
@@ -723,9 +660,6 @@ export function simulateInvalidSpeakingEvent(
 }
 
 
-/**
- * Send an invalid Discord-user discovery envelope.
- */
 export function simulateInvalidDiscordUserEvent(
   reference
 ) {
@@ -757,10 +691,6 @@ export function simulateInvalidDiscordUserEvent(
       channelId:
         getDebugChannelId(),
 
-      /*
-       * Deliberately inconsistent with
-       * VOICE_STATE_UPDATE.
-       */
       present:
         false,
 
@@ -775,10 +705,6 @@ export function simulateInvalidDiscordUserEvent(
   return getLastRejectedMessage();
 }
 
-
-/**
- * Send an invalid extension health envelope.
- */
 export function simulateInvalidRelayHealth() {
   requireLocalRelayHost();
 
@@ -804,13 +730,8 @@ export function simulateInvalidRelayHealth() {
 
 // #endregion
 
-
 // #region Stale State Simulation
 
-/**
- * Simulate a speaking record old enough for
- * stale-speaker cleanup.
- */
 export function simulateStaleSpeaker(
   reference
 ) {
@@ -838,11 +759,6 @@ export function simulateStaleSpeaker(
   }
 
 
-  /*
-   * Extension ingress rejects events older than
-   * sixty seconds, so the deterministic test must
-   * remain inside that transport freshness window.
-   */
   if (
     timeout >= 59000
   ) {
@@ -890,15 +806,6 @@ export function simulateStaleSpeaker(
   };
 }
 
-
-/**
- * Deterministically exercise relay-health stale
- * detection without relying on browser timers.
- *
- * This is intentionally a RelayState unit-style
- * test because the real extension ingress rejects
- * timestamps older than its freshness window.
- */
 export function simulateStaleRelay() {
   requireLocalRelayHost();
 

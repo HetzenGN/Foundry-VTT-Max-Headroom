@@ -60,9 +60,6 @@ function clamp(
 
 // #region Internal Helpers
 
-/**
- * Safely escape a value for use inside a CSS selector.
- */
 function escapeSelectorValue(value) {
   const stringValue = String(value ?? "");
 
@@ -76,17 +73,6 @@ function escapeSelectorValue(value) {
   );
 }
 
-/**
- * Determine which image should currently be displayed.
- *
- * Priority:
- *
- * 1. muted image, if muted and configured
- * 2. talking image, if speaking and configured
- * 3. idle image
- *
- * A missing talking image therefore falls back naturally to the idle image.
- */
 function resolvePortraitImage(config, state) {
   if (
     state.muted
@@ -105,12 +91,6 @@ function resolvePortraitImage(config, state) {
   return config.idleImage || "";
 }
 
-/**
- * Resolve the name shown beneath a reactive portrait.
- *
- * Character mode resolves the Foundry User's current selected
- * Player Character dynamically rather than storing an Actor name.
- */
 function resolvePortraitDisplayName(
   user,
   config
@@ -153,10 +133,6 @@ function resolvePortraitDisplayName(
   return userName;
 }
 
-/**
- * Build the transient view model used by the portrait template and DOM
- * patching code.
- */
 function buildPortraitViewModel(user) {
   const config =
     getReactivePortraitConfig(user);
@@ -201,17 +177,6 @@ function buildPortraitViewModel(user) {
 
 // #region Reactive Portrait Bar Application
 
-/**
- * Player-facing reactive portrait overlay.
- *
- * This Application does not communicate with StreamKit and does not own
- * authoritative relay state.
- *
- * It consumes:
- *
- * - persistent User configuration through portrait-flags.js
- * - transient runtime state through portrait-state.js
- */
 export class ReactivePortraitBar extends HandlebarsApplicationMixin(
   ApplicationV2
 ) {
@@ -247,9 +212,6 @@ export class ReactivePortraitBar extends HandlebarsApplicationMixin(
   constructor(options = {}) {
     super(options);
 
-    /**
-     * Unsubscribe callback returned by PortraitStateStore.subscribe().
-     */
     this._unsubscribeState = null;
     this._editMode = false;
 
@@ -326,9 +288,6 @@ export class ReactivePortraitBar extends HandlebarsApplicationMixin(
 
   // #region Render Lifecycle
 
-  /**
-   * Perform post-render setup.
-   */
   async _onRender(context, options) {
     await super._onRender(
       context,
@@ -355,9 +314,6 @@ export class ReactivePortraitBar extends HandlebarsApplicationMixin(
   );
   }
 
-  /**
-   * Clean up the portrait-state subscription when the application closes.
-   */
   _onClose(options) {
     this._removeStateSubscription();
     this._removeInteractionListeners();
@@ -465,10 +421,6 @@ export class ReactivePortraitBar extends HandlebarsApplicationMixin(
       !context.hasUsers;
   }
 
-  /**
- * Position the unscaled lock control over the actual rendered
- * top-right corner of the scaled Portrait Bar.
- */
 _updateLockPosition() {
   const element =
     this.element;
@@ -494,9 +446,6 @@ _updateLockPosition() {
     return;
   }
 
-  /*
-   * getBoundingClientRect() includes the current CSS scale transform.
-   */
   const innerRect =
     inner.getBoundingClientRect();
 
@@ -729,10 +678,6 @@ _updateLockPosition() {
     const currentScale =
       this._getCurrentScale();
 
-    /*
-    * Scaling switches an anchored bar into custom-position mode while
-    * preserving its current visible top-left location.
-    */
     this._setCustomPosition(
       rect.left,
       rect.top
@@ -1126,9 +1071,6 @@ _startPointerInteraction() {
 
   // #region State Subscription
 
-  /**
-   * Subscribe once to the shared client-side PortraitStateStore.
-   */
   _ensureStateSubscription() {
     if (this._unsubscribeState) {
       return;
@@ -1142,9 +1084,6 @@ _startPointerInteraction() {
       );
   }
 
-  /**
-   * Remove the current PortraitStateStore subscription.
-   */
   _removeStateSubscription() {
     if (!this._unsubscribeState) {
       return;
@@ -1155,9 +1094,6 @@ _startPointerInteraction() {
     this._unsubscribeState = null;
   }
 
-  /**
-   * React to runtime portrait-state events.
-   */
   _handleStateEvent(event) {
     if (!this.rendered) {
       return;
@@ -1180,11 +1116,6 @@ _startPointerInteraction() {
         this._patchAllTiles();
         break;
 
-      /*
-       * resetSpeakingStates() and resetAllStates() already emit UPDATE
-       * events for affected users, so RESET does not require another
-       * full pass.
-       */
       case PORTRAIT_STATE_EVENTS.RESET:
         break;
 
@@ -1197,9 +1128,6 @@ _startPointerInteraction() {
 
   // #region DOM Patching
 
-  /**
-   * Patch one existing portrait tile without re-rendering the Application.
-   */
   _patchTile(userId) {
     const normalizedUserId =
       String(userId ?? "");
@@ -1243,11 +1171,6 @@ _startPointerInteraction() {
     );
   }
 
-  /**
-   * Patch every currently rendered portrait tile.
-   *
-   * Used after a full runtime-state synchronization.
-   */
   _patchAllTiles() {
     if (!this.rendered) {
       return;
@@ -1284,9 +1207,6 @@ _startPointerInteraction() {
     }
   }
 
-  /**
-   * Apply a prepared portrait view model to one tile.
-   */
   _applyViewModelToTile(
     tile,
     view
@@ -1408,29 +1328,16 @@ _startPointerInteraction() {
 
   // #region Public Application Methods
 
-  /**
-   * Fully refresh portrait configuration and layout.
-   *
-   * Use this after User flag or world-setting changes.
-   */
   async refresh() {
     return this.render({
       force: true
     });
   }
 
-  /**
-   * Patch one user's current runtime state.
-   *
-   * Primarily useful for debugging and the future public module API.
-   */
   patchUser(userId) {
     this._patchTile(userId);
   }
 
-  /**
-   * Patch all portrait runtime states without performing a full render.
-   */
   patchAll() {
     this._patchAllTiles();
   }
@@ -1442,9 +1349,6 @@ _startPointerInteraction() {
 
 // #region Singleton
 
-/**
- * One portrait-bar Application instance per Foundry client.
- */
 export const portraitBar =
   new ReactivePortraitBar();
 

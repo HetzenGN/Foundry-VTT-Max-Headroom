@@ -28,29 +28,13 @@ const LOG_PREFIX = "[FoundryVTT_Max_Headroom]";
 
 // #endregion
 
-
 // #region User Resolution
 
-/**
- * Resolve a Foundry User from a convenient debug reference.
- *
- * Accepted values:
- *
- * - Foundry User document
- * - Foundry User ID
- * - exact Foundry User name
- * - configured Discord User ID
- *
- * Returns null if no matching user is found.
- */
 function resolveUser(userReference) {
   if (!userReference) {
     return null;
   }
 
-  /*
-   * Already looks like a Foundry User document.
-   */
   if (
     typeof userReference === "object"
     && userReference.id
@@ -66,9 +50,7 @@ function resolveUser(userReference) {
     return null;
   }
 
-  /*
-   * Foundry User ID.
-   */
+  /* User id */
   const byId =
     game.users.get(value);
 
@@ -76,9 +58,7 @@ function resolveUser(userReference) {
     return byId;
   }
 
-  /*
-   * Exact Foundry User name.
-   */
+  /* Foundry User name.*/
   const lowered =
     value.toLowerCase();
 
@@ -94,15 +74,10 @@ function resolveUser(userReference) {
     return byName;
   }
 
-  /*
-   * Configured Discord User ID.
-   */
+  /*iscord User ID.*/
   return findUserByDiscordId(value);
 }
 
-/**
- * Resolve a User or throw a useful debug error.
- */
 function requireUser(userReference) {
   const user =
     resolveUser(userReference);
@@ -121,19 +96,10 @@ function requireUser(userReference) {
 
 // #region State Inspection
 
-/**
- * Return the complete current portrait runtime state.
- *
- * Intended for browser-console diagnostics.
- */
 export function getPortraitDebugState() {
   return portraitState.toObject();
 }
 
-/**
- * Return the current runtime state and persistent reactive configuration
- * for one Foundry User.
- */
 export function inspectPortraitUser(userReference) {
   const user =
     requireUser(userReference);
@@ -157,20 +123,8 @@ export function inspectPortraitUser(userReference) {
 
 // #endregion
 
-
 // #region Speaking Simulation
 
-/**
- * Simulate speaking state for one configured Foundry User.
- *
- * Examples:
- *
- * simulatePortraitSpeaking("Alice", true)
- * simulatePortraitSpeaking("Alice", false)
- *
- * The false transition uses normal speech decay unless decayMs is
- * explicitly overridden.
- */
 export function simulatePortraitSpeaking(
   userReference,
   speaking = true,
@@ -239,9 +193,6 @@ export function simulatePortraitSpeaking(
   return state;
 }
 
-/**
- * Toggle one user's current speaking state.
- */
 export function togglePortraitSpeaking(
   userReference,
   options = {}
@@ -262,11 +213,6 @@ export function togglePortraitSpeaking(
   );
 }
 
-/**
- * Mark multiple users as speaking simultaneously.
- *
- * Existing speakers which are not listed are left unchanged.
- */
 export function simulateSimultaneousSpeakers(
   userReferences = []
 ) {
@@ -300,13 +246,8 @@ export function simulateSimultaneousSpeakers(
 
 // #endregion
 
-
 // #region Mute and Deafen Simulation
 
-/**
- * Set or clear one user's muted state without altering their current
- * speaking state.
- */
 export function simulatePortraitMuted(
   userReference,
   muted = true
@@ -337,9 +278,6 @@ export function simulatePortraitMuted(
   );
 }
 
-/**
- * Toggle one user's muted state.
- */
 export function togglePortraitMuted(
   userReference
 ) {
@@ -355,10 +293,6 @@ export function togglePortraitMuted(
   );
 }
 
-/**
- * Set or clear one user's deafened state without altering their current
- * speaking state.
- */
 export function simulatePortraitDeafened(
   userReference,
   deafened = true
@@ -389,9 +323,6 @@ export function simulatePortraitDeafened(
   );
 }
 
-/**
- * Toggle one user's deafened state.
- */
 export function togglePortraitDeafened(
   userReference
 ) {
@@ -409,70 +340,36 @@ export function togglePortraitDeafened(
 
 // #endregion
 
-
 // #region Reset Utilities
 
-/**
- * Immediately return all portraits to their idle speaking state.
- *
- * Mute/deafen values are preserved.
- */
 export function resetPortraitSpeaking() {
   return portraitState.resetSpeakingStates();
 }
 
-/**
- * Reset all transient portrait state.
- *
- * Speaking, muted, and deafened states are cleared.
- */
 export function resetPortraitStates() {
   return portraitState.resetAllStates();
 }
 
-/**
- * Completely clear the client-side portrait state store.
- */
 export function clearPortraitStates() {
   portraitState.clear();
 }
 
 // #endregion
 
-
 // #region Portrait Bar Utilities
 
-/**
- * Fully re-render the Portrait Bar.
- *
- * Use this after modifying User flags or layout settings.
- */
 export async function refreshPortraitBar() {
   return portraitBar.refresh();
 }
 
-/**
- * Patch all currently rendered portrait tiles without rebuilding the
- * Handlebars application.
- */
 export function patchPortraitBar() {
   portraitBar.patchAll();
 }
 
 // #endregion
 
-
 // #region Debug API
 
-/**
- * Public-facing development/debug methods.
- *
- * scripts/main.js can spread this object into the module API.
- *
- * Example:
- *
- * game.modules.get(MODULE_ID).api.simulatePortraitSpeaking("Alice", true)
- */
 export const portraitDebugApi = Object.freeze({
   getPortraitDebugState,
   inspectPortraitUser,

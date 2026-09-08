@@ -53,31 +53,12 @@ const LOG_PREFIX = "[FoundryVTT_Max_Headroom]";
 
 // #endregion
 
-
 // #region Public Module API
 
-/**
- * Public module API.
- *
- * Provides the companion-extension ingress surface,
- * GM diagnostics, and portrait debugging utilities.
- *
- * Access through:
- *
- * game.modules.get(MODULE_ID).api
- */
 const moduleApi = {
   MODULE_ID,
   PROTOCOL_VERSION,
 
-
-  /**
-   * Chromium companion-extension ingress.
-   *
-   * This intentionally exposes only the small
-   * extension transport envelope, not RelayState
-   * mutation APIs.
-   */
   receiveExtensionRelayHealth(
     payload
   ) {
@@ -117,17 +98,8 @@ getDiscoveredDiscordUsers() {
 
 // #endregion
 
-
 // #region Foundry Hooks
 
-/**
- * Foundry initialization.
- *
- * Use this phase for:
- * - settings registration
- * - public API setup
- * - hooks which must exist before the world is ready
- */
 Hooks.once("init", () => {
   console.log(
     `${LOG_PREFIX} Initializing`
@@ -166,12 +138,6 @@ Hooks.once("init", () => {
 });
 
 
-/**
- * Foundry ready.
- *
- * Services which require prepared world data, users, settings,
- * sockets, or UI should start here.
- */
 Hooks.once("ready", async () => {
   console.log(
     `${LOG_PREFIX} Ready`
@@ -243,12 +209,6 @@ Hooks.on(
 
 // #region Foundry User Character Updates
 
-/*
- * A User's selected Player Character is native Foundry User data.
- *
- * Refresh the Portrait Bar when that assignment changes so portrait
- * names configured for "Player Character" update immediately.
- */
 Hooks.on(
   "updateUser",
   (_user, changes) => {
@@ -280,14 +240,6 @@ Hooks.on(
 // #region Request Initial State Sync
 
 try {
-  /*
-   * A newly-connected or reloaded non-authoritative client starts with
-   * an empty PortraitStateStore. Ask the active relay-host GM for the
-   * current authoritative state.
-   *
-   * The active relay host already owns the authoritative state locally
-   * and does not need to request it from itself.
-   */
   if (!socketService.isAuthoritative()) {
     socketService.requestFullSync();
   }

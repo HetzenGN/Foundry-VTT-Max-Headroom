@@ -64,14 +64,6 @@ function makeMappedIdLabel(
   return `Previously mapped Discord user …${suffix}`;
 }
 
-
-/**
- * Build friendly Discord-user choices for one
- * Foundry User configuration row.
- *
- * The actual select values remain Discord snowflake
- * strings. Friendly names are presentation only.
- */
 function buildDiscordMappingContext(
   config,
   discoveredUsers
@@ -188,11 +180,6 @@ function buildDiscordMappingContext(
 
 // #region Reactive User Configuration Application
 
-/**
- * GM-only configuration window for reactive portrait User data.
- *
- * Persistent configuration is stored through portrait-flags.js.
- */
 export class ReactiveUserConfigApp extends HandlebarsApplicationMixin(
   ApplicationV2
 ) {
@@ -243,10 +230,6 @@ export class ReactiveUserConfigApp extends HandlebarsApplicationMixin(
 
   // #region Render Permission
 
-  /**
-   * Prevent non-GMs from opening the configuration window even if they
-   * somehow invoke the Application directly.
-   */
   _canRender(options) {
     const allowed =
       super._canRender(options);
@@ -384,9 +367,6 @@ async _prepareContext(options) {
 
   // #region Application Actions
 
-  /**
-   * Handle normal template data-action buttons.
-   */
   async _onClickAction(
     event,
     target
@@ -421,16 +401,6 @@ async _prepareContext(options) {
 
   // #region Image Picker
 
-  /**
-   * Open Foundry's FilePicker for one image field.
-   *
-   * The template button supplies:
-   *
-   * data-type="image"
-   * data-target="<input name>"
-   * data-user-id="<Foundry User ID>"
-   * data-field="<configuration field>"
-   */
   async _openImagePicker(button) {
     const picker =
       FilePicker.fromButton(button);
@@ -453,10 +423,6 @@ async _prepareContext(options) {
     const field =
       button.dataset.field;
 
-    /*
-     * Replace the default callback so we can update both the input and
-     * the visible preview immediately.
-     */
     picker.callback = (path) => {
       input.value =
         String(path ?? "");
@@ -473,12 +439,6 @@ async _prepareContext(options) {
     });
   }
 
-  /**
- * Clear one configured image path and update its preview.
- *
- * The change remains part of the form until Save Configuration
- * is pressed, matching normal image selection behavior.
- */
   _clearImage(button) {
     const userId =
       button.dataset.userId;
@@ -522,9 +482,6 @@ async _prepareContext(options) {
     );
   }
 
-  /**
-   * Update one image preview without re-rendering the entire config window.
-   */
   _updateImagePreview(
     userId,
     field,
@@ -602,12 +559,8 @@ async _prepareContext(options) {
 
   // #endregion
 
-
   // #region Form Reading
 
-  /**
-   * Read one User's configuration from its form row.
-   */
   _readUserRow(row) {
     const userId =
       row.dataset.userId;
@@ -685,9 +638,6 @@ async _prepareContext(options) {
     };
   }
 
-  /**
-   * Read all User configuration rows.
-   */
   _readAllUserRows(form) {
     const rows =
       form.querySelectorAll(
@@ -702,15 +652,8 @@ async _prepareContext(options) {
 
   // #endregion
 
-
   // #region Configuration Validation
 
-  /**
-   * Prevent multiple Foundry Users from being mapped to the same Discord
-   * User ID.
-   *
-   * One Discord speaking event must resolve unambiguously to one Foundry User.
-   */
   _validateConfigurations(
     entries
   ) {
@@ -766,12 +709,8 @@ async _prepareContext(options) {
 
   // #endregion
 
-
   // #region Configuration Save
 
-  /**
-   * Persist every User row through portrait-flags.js.
-   */
   async _saveUserConfigurations(
     form
   ) {
@@ -800,13 +739,6 @@ async _prepareContext(options) {
     }
 
     try {
-      /*
-       * Save Users sequentially.
-       *
-       * portrait-flags.js already performs each User's flag writes
-       * sequentially, so this avoids competing updates against User
-       * documents.
-       */
       for (const entry of entries) {
         const user =
           game.users.get(
@@ -828,16 +760,8 @@ async _prepareContext(options) {
         );
       }
 
-      /*
-       * Configuration changes affect which tiles exist and which images
-       * they use, so this is an appropriate full Portrait Bar refresh.
-       */
       await portraitBar.refresh();
 
-      /*
-       * Re-render this window to display normalized values and apply the
-       * newly-saved sort order.
-       */
       await this.render({
         force: true
       });
@@ -866,13 +790,8 @@ async _prepareContext(options) {
 
 // #endregion
 
-
 // #region Settings Menu Registration
 
-/**
- * Register the GM-only configuration application as a Foundry settings
- * submenu.
- */
 export function registerPortraitConfigMenu() {
   game.settings.registerMenu(
     MODULE_ID,

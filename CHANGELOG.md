@@ -1,3 +1,9 @@
+0.3.5
+- Documentation Updates
+
+0.3.4
+- Documentation Updates
+
 0.3.3
 - Collapsible Reactive Portrait configuration rows
 - Improved Browser Companion status guidance

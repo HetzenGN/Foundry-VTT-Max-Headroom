@@ -80,12 +80,6 @@ class DiscordUserDirectory {
   }
 
 
-  /**
-   * Record one observed Discord voice user.
-   *
-   * VOICE_STATE_DELETE deliberately keeps the user's
-   * friendly metadata while marking them absent.
-   */
   record(observation) {
     const discordUserId =
       normalizeDiscordUserId(
@@ -250,9 +244,6 @@ class DiscordUserDirectory {
       )
       .sort(
         (a, b) => {
-          /*
-           * Currently-present users appear first.
-           */
           if (
             a.present
             !== b.present
