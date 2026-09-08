@@ -3,7 +3,7 @@
 Max Headroom displays Discord voice activity directly inside Foundry VTT,
 including multiple simultaneous speakers.
 
-![FoundryVTT Max Headroom reactive Discord portrait demonstration](docs/media/max-headroom-demo.gif)
+![FoundryVTT Max Headroom reactive Discord portrait demonstration](docs/media/max_headroom_demo.gif)
 
 # FoundryVTT Max Headroom
 
