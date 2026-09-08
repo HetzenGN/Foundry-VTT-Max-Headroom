@@ -1,3 +1,10 @@
+## Reactive Discord Portraits
+
+Max Headroom displays Discord voice activity directly inside Foundry VTT,
+including multiple simultaneous speakers.
+
+![FoundryVTT Max Headroom reactive Discord portrait demonstration](docs/media/max-headroom-demo.gif)
+
 # FoundryVTT Max Headroom
 
 FoundryVTT Max Headroom displays reactive Discord voice portraits directly inside Foundry VTT. Portraits can change when a Discord user speaks or mutes, giving the table a visual indication of voice activity without requiring OBS inside Foundry.
