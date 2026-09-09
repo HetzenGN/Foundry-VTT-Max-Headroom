@@ -169,6 +169,8 @@ Each enabled user can have:
 
 These are independent from Actor portraits, Tokens, character artwork, and Foundry User avatars.
 
+For animated portraits that activate a speaking loop the animations must be in .webp format only. For reactive, but static images, any of the normal Foundry image formats should work.
+
 Use the folder button to select artwork. Use the clear button to remove an image and return that field to its default behavior. Talking can fall back to Idle when no separate Talking image is configured; Muted is optional.
 
 Use **Sort Order** to control portrait order, then click **Save Configuration**.
